@@ -1,0 +1,5 @@
+env
+tuneful/uploads/*
+*.db
+config.py
+.idea
