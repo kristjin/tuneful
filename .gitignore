@@ -3,3 +3,4 @@ tuneful/uploads/*
 *.db
 config.py
 .idea
+*.pyc
