@@ -18,6 +18,56 @@ from tuneful.database import Base, engine, session
 class TestAPI(unittest.TestCase):
     """ Tests for the tuneful API """
 
+    def testPostNewSong(self):
+        """Post a new song to the DB - req's file already uploaded"""
+        # Create a file in the DB for the app to find
+        file = models.File(name="BornThisWay.mp3")
+        session.add(file)
+        session.commit()
+
+        # Compile posted data into a dictionary for easy conversion to JSON
+        data = {
+            "file": {
+                "id": 1
+            }
+        }
+
+        # Collect the response from the endpoint
+        # use json.dumps to convert dict > JSON
+        # use content_type to indicate the type of content in data
+        response = self.client.post("/api/songs",
+                                    data=json.dumps(data),
+                                    content_type="application/json",
+                                    headers=[("Accept", "application/json")],
+                                    )
+
+        # Verify request to endpoint was successful using 201 created
+        self.assertEqual(response.status_code, 201)
+        # Verify that the response is JSON type
+        self.assertEqual(response.mimetype, "application/json")
+        # Verify the endpoint is setting the correct Location header
+        # This should be the link to the new post
+        self.assertEqual(urlparse(response.headers.get("Location")).path,
+                         "/api/songs")
+        # Decode the response with json.loads
+        song = json.loads(response.data)
+        # Extrapolate the file info
+        file = song["file"]
+        # Validate the response
+        self.assertEqual(song["id"], 1)
+        self.assertEqual(file["id"], 1)
+        self.assertEqual(file["name"], "BornThisWay.mp3")
+        # Query DB to validate status
+        song = session.query(models.Song).all()
+        # Verify only one item in DB
+        self.assertEqual(len(song), 1)
+        # Isolate the one item in the list
+        song = song[0]
+        # Validate the content of the item retrieved from the DB
+        self.assertEqual(song.id, 1)
+        self.assertEqual(song.file_id, 1)
+        self.assertEqual(song.file.name, "BornThisWay.mp3")
+
     def testGetSongs(self):
         """ Get a list of all the songs from a populated DB """
 
@@ -48,12 +98,11 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(response.mimetype, "application/json")
         # Decode the data using json.loads
         data = json.loads(response.data)
-        # Verify that two posts have been returned
+        # Verify that two songs have been returned
         self.assertEqual(len(data), 2)
-        # Verify the contents of both posts as correct
+        # Verify the contents of both songs as correct
         songA = data[0]
         self.assertEqual(songA["id"], 1)
-        # self.assertEqual(songA, "")
         fileA = songA["file"]
         self.assertEqual(fileA["name"], "BornThisWay.mp3")
         songB = data[1]
