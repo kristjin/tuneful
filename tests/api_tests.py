@@ -20,6 +20,38 @@ from tuneful.database import Base, engine, session
 class TestAPI(unittest.TestCase):
     """ Tests for the tuneful API """
 
+    def test_file_upload(self):
+        # Construct form data as a dictionary,
+        # Use Py StringIO Class to simulate a file object
+        data = {
+            "file": (StringIO("File contents"), "test.txt")
+        }
+
+        # Send dict to /api/files with content type of multipart/form-data
+        response = self.client.post("/api/files",
+            data=data,
+            content_type="multipart/form-data",
+            headers=[("Accept", "application/json")]
+        )
+
+        # Response status 201 CREATED expected
+        self.assertEqual(response.status_code, 201)
+        # Response in JSON?
+        self.assertEqual(response.mimetype, "application/json")
+        # Decode JSON
+        data = json.loads(response.data)
+        # Validate file path
+        self.assertEqual(urlparse(data["path"]).path, "/uploads/test.txt")
+        # Create path from utils.py method
+        path = upload_path("test.txt")
+        # Verify file is in expected location
+        self.assertTrue(os.path.isfile(path))
+        # Read the file contents
+        with open(path) as f:
+            contents = f.read()
+        # Verify contents are as expected
+        self.assertEqual(contents, "File contents")
+
     def test_get_uploaded_file(self):
         # create the upload path with the filename
         # upload_path() is defined in utils.py

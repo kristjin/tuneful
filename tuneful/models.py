@@ -31,8 +31,8 @@ class File(Base):
     song = relationship("Song", uselist=False, backref="file")
 
     def as_dictionary(self):
-        file = {
+        return {
             "id": self.id,
-            "name": self.name
+            "name": self.name,
+            "path": url_for("uploaded_file", filename=self.name)
         }
-        return file

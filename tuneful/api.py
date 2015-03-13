@@ -20,6 +20,33 @@ file_schema = {
 }
 
 
+@app.route("/api/files", methods=["POST"])
+@decorators.require("multipart/form-data")
+@decorators.accept("application/json")
+def file_post():
+    # Attempt to obtain the file uploaded file from Flask's request.files dict
+    file = request.files.get("file")
+    # If the file is not found, return an error
+    if not file:
+        data = {"message": "Could not find file data"}
+        return Response(json.dumps(data), 422, mimetype="application/json")
+    # Werkzeug zecure_filename function provides safe version of file name
+    # For instance ../../../etc/passwd is replaced by etc_passwd
+    filename = secure_filename(file.filename)
+    # Create file object with safe filename
+    db_file = models.File(name=filename)
+    # Add the file object to the session and commit
+    session.add(db_file)
+    session.commit()
+    # Save the file to the upload path using the safe file name
+    file.save(upload_path(filename))
+
+    # Create a dict object of file
+    data = db_file.as_dictionary()
+    # Return a response with 201 CREATED
+    return Response(json.dumps(data), 201, mimetype="application/json")
+
+
 @app.route("/uploads/<filename>", methods=["GET"])
 def uploaded_file(filename):
     return send_from_directory(upload_path(), filename)
