@@ -17,6 +17,22 @@ from tuneful.database import Base, engine, session
 
 class TestAPI(unittest.TestCase):
     """ Tests for the tuneful API """
+    def testMissingData(self):
+        """ Posting a song with missing data """
+
+        # Compile posted data into a dictionary for easy conversion to JSON
+        data = {}
+
+        response = self.client.post("/api/songs",
+                                    data=json.dumps(data),
+                                    content_type="application/json",
+                                    headers=[("Accept", "application/json")],
+                                    )
+
+        self.assertEqual(response.status_code, 422)
+
+        data = json.loads(response.data)
+        self.assertEqual(data["message"], "'file' is a required property")
 
     def testUnsupportedMimetype(self):
         """ Test Sending Unsupported Mime Type """
