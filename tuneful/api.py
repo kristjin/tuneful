@@ -30,7 +30,7 @@ def file_post():
     if not file:
         data = {"message": "Could not find file data"}
         return Response(json.dumps(data), 422, mimetype="application/json")
-    # Werkzeug zecure_filename function provides safe version of file name
+    # Werkzeug secure_filename function provides safe version of file name
     # For instance ../../../etc/passwd is replaced by etc_passwd
     filename = secure_filename(file.filename)
     # Create file object with safe filename
