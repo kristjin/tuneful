@@ -24,7 +24,7 @@ file_schema = {
 @decorators.require("application/json")
 @decorators.accept("application/json")
 def songs_post():
-    """ Add a new song """
+    """ Add a new song - after file is uploaded """
     # Get JSON from the request
     data = request.json
 
@@ -34,7 +34,8 @@ def songs_post():
         validate(data, file_schema)
     except ValidationError as error:
         data = {"message": error.message}
-        return Response(json.dumps(data), 422, mimetype="application/json")
+        return Response(json.dumps(data), 422,
+                        mimetype="application/json")
 
     # Extract the file data from the request
     file = data["file"]

@@ -18,8 +18,28 @@ from tuneful.database import Base, engine, session
 class TestAPI(unittest.TestCase):
     """ Tests for the tuneful API """
 
+    def testUnsupportedMimetype(self):
+        """ Test Sending Unsupported Mime Type """
+        # Compile data in incorrect mimetype
+        data = "<xml></xml>"
+        # Obtain response from app when posting with unacceptable mimetype
+        response = self.client.post("/api/songs",
+                                    data=json.dumps(data),
+                                    content_type="application/xml",
+                                    headers=[("Accept", "application/json")],
+                                    )
+        # Confirm that response status code is 415 Unsupported Media Type
+        self.assertEqual(response.status_code, 415)
+        # Confirm that response from app is in JSON
+        self.assertEqual(response.mimetype, "application/json")
+        # Decode the JSON data
+        data = json.loads(response.data)
+        # Confirm message is appropriate
+        self.assertEqual(data["message"],
+                         "Request must contain application/json data")
+
     def testPostNewSong(self):
-        """Post a new song to the DB - req's file already uploaded"""
+        """Post a new song to the DB"""
         # Create a file in the DB for the app to find
         file = models.File(name="BornThisWay.mp3")
         session.add(file)
