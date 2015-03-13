@@ -20,6 +20,11 @@ file_schema = {
 }
 
 
+@app.route("/uploads/<filename>", methods=["GET"])
+def uploaded_file(filename):
+    return send_from_directory(upload_path(), filename)
+
+
 @app.route("/api/songs", methods=["POST"])
 @decorators.require("application/json")
 @decorators.accept("application/json")

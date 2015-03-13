@@ -20,6 +20,23 @@ from tuneful.database import Base, engine, session
 class TestAPI(unittest.TestCase):
     """ Tests for the tuneful API """
 
+    def test_get_uploaded_file(self):
+        # create the upload path with the filename
+        # upload_path() is defined in utils.py
+        path = upload_path("test.txt")
+        # Fill the file with some foo
+        with open(path, "w") as f:
+            f.write("File contents")
+
+        # Obtain the response from the app
+        response = self.client.get("/uploads/test.txt")
+
+        # Was the request successful?  200 OK expected.
+        self.assertEqual(response.status_code, 200)
+        # Is the response in plain text?
+        self.assertEqual(response.mimetype, "text/plain")
+        # Is the response data the contents of the file uploaded?
+        self.assertEqual(response.data, "File contents")
 
     def testMissingData(self):
         """ Posting a song with missing data """

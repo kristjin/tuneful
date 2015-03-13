@@ -3,16 +3,8 @@ from tuneful import app
 from tuneful.database import session, Base
 from tuneful.models import Song, File
 from flask.ext.script import Manager
-from flask.ext.migrate import Migrate, MigrateCommand
-
-
-class DB(object):
-    def __init__(self, metadata):
-        self.metadata = metadata
 
 manager = Manager(app)
-migrate = Migrate(app, DB(Base.metadata))
-manager.add_command('db', MigrateCommand)
 
 @manager.command
 def seed():
@@ -23,3 +15,11 @@ def seed():
         song = Song(file_id=file.id)
         session.add(song)
         session.commit()
+
+@manager.command
+def run():
+    port = int(os.environ.get('PORT', 8080))
+    app.run(host='0.0.0.0', port=port)
+
+if __name__ == "__main__":
+    manager.run()
